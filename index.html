@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Study/Career Path Finder for Students</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0f1e; --panel:#141c33; --panel2:#1a2440; --ink:#eaf0fb; --mut:#93a0c2;
+    --faint:#5d6a8c; --line:#26314f;
+    --science:#4d8dff; --commerce:#ffb454; --arts:#ff7eb6; --vocational:#34d0e0;
+    --design:#ff7d6b; --medical:#2fbf8f; --pg:#a98bff; --career:#9aa6c6;
+    --intl:#9bd650; --start:#ffe6a8;
+    --disp:'Space Grotesk',system-ui,sans-serif; --body:'Inter',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:var(--body); color:var(--ink); overflow:hidden;
+    background:radial-gradient(1200px 800px at 50% 8%, rgba(77,141,255,.12), transparent 55%),
+      radial-gradient(900px 700px at 88% 100%, rgba(155,214,80,.05), transparent 60%), var(--bg);}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
+    background-image:radial-gradient(1.4px 1.4px at 16% 22%,rgba(255,255,255,.4),transparent),
+      radial-gradient(1.2px 1.2px at 72% 14%,rgba(255,255,255,.32),transparent),
+      radial-gradient(1.2px 1.2px at 44% 80%,rgba(255,255,255,.28),transparent),
+      radial-gradient(1.5px 1.5px at 90% 60%,rgba(255,255,255,.32),transparent),
+      radial-gradient(1.2px 1.2px at 8% 68%,rgba(255,255,255,.26),transparent);}
+  .screen{position:fixed; inset:0; overflow-y:auto; display:none}
+  .screen.on{display:block}
+  .center{min-height:100%; display:grid; place-items:center; padding:24px}
+
+  /* ---------- shared card ---------- */
+  .card{width:min(620px,100%); background:linear-gradient(180deg,#131b32,#0e1426);
+    border:1px solid var(--line); border-radius:22px; padding:36px 34px; box-shadow:0 30px 80px rgba(0,0,0,.5)}
+  .kick{font-family:var(--mono); font-size:11px; letter-spacing:.26em; text-transform:uppercase; color:var(--faint); margin:0 0 14px}
+  .card h1{font-family:var(--disp); font-weight:600; font-size:clamp(26px,5vw,38px); line-height:1.04; letter-spacing:-.02em; margin:0 0 14px}
+  .card h1 em{font-style:normal; color:var(--start)}
+  .lede{font-size:15px; line-height:1.6; color:var(--mut); margin:0 0 26px}
+
+  /* ---------- gate ---------- */
+  .field{margin-bottom:16px}
+  .field label{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--mut); margin-bottom:7px}
+  .field input{width:100%; background:#0c1324; border:1px solid var(--line); border-radius:12px; padding:13px 15px; color:var(--ink);
+    font-family:var(--body); font-size:15px; outline:none; transition:border-color .15s, box-shadow .15s}
+  .field input:focus{border-color:var(--science); box-shadow:0 0 0 3px rgba(77,141,255,.18)}
+  .field input.bad{border-color:#ff6f7d; box-shadow:0 0 0 3px rgba(255,111,125,.15)}
+  .err{color:#ff9aa4; font-size:12px; margin-top:6px; min-height:14px}
+  .btn{padding:14px 18px; border:none; border-radius:12px; cursor:pointer; font-family:var(--disp); font-weight:600;
+    font-size:15px; background:linear-gradient(180deg,#5b97ff,#3f7bef); color:#fff; box-shadow:0 10px 24px rgba(63,123,239,.32);
+    transition:filter .15s, transform .05s}
+  .btn:hover{filter:brightness(1.07)} .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.5; cursor:not-allowed; box-shadow:none}
+  .btn.full{width:100%; margin-top:8px}
+  .btn.ghost{background:none; border:1px solid var(--line); color:var(--ink); box-shadow:none; font-weight:500}
+  .btn.ghost:hover{background:rgba(255,255,255,.05); filter:none}
+  .btn.sm{padding:9px 14px; font-size:13px}
+  .privacy{font-size:11.5px; color:var(--faint); margin-top:16px; line-height:1.5}
+
+  /* ---------- chooser ---------- */
+  .opts{display:grid; gap:14px; margin-top:8px}
+  @media(min-width:640px){.opts{grid-template-columns:1fr 1fr}}
+  .opt{text-align:left; cursor:pointer; background:#0f1730; border:1px solid var(--line); border-radius:18px; padding:22px;
+    transition:border-color .15s, transform .1s, background .15s; color:var(--ink)}
+  .opt:hover{border-color:var(--science); transform:translateY(-2px); background:#111c39}
+  .opt .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;margin-bottom:14px;
+    background:rgba(77,141,255,.14); border:1px solid rgba(77,141,255,.3)}
+  .opt.build .ic{background:rgba(155,214,80,.14); border-color:rgba(155,214,80,.32)}
+  .opt h3{font-family:var(--disp); font-weight:600; font-size:19px; margin:0 0 6px}
+  .opt p{margin:0; font-size:13px; color:var(--mut); line-height:1.5}
+  .backbar{display:flex; align-items:center; gap:10px; margin-bottom:18px}
+
+  /* ---------- builder ---------- */
+  .prog{height:4px; background:var(--line); border-radius:4px; overflow:hidden; margin:0 0 22px}
+  .prog i{display:block; height:100%; background:linear-gradient(90deg,var(--science),var(--intl)); width:0; transition:width .35s}
+  .qh{font-family:var(--disp); font-weight:600; font-size:clamp(20px,3.6vw,26px); line-height:1.18; margin:0 0 6px; letter-spacing:-.01em}
+  .qsub{font-size:13px; color:var(--mut); margin:0 0 18px}
+  .chips{display:flex; flex-wrap:wrap; gap:9px}
+  .chip{cursor:pointer; user-select:none; font-size:14px; padding:10px 15px; border-radius:11px; border:1px solid var(--line);
+    background:#0f1730; color:var(--ink); transition:border-color .12s, background .12s; display:flex; align-items:center; gap:8px}
+  .chip:hover{border-color:var(--faint)}
+  .chip.sel{border-color:var(--science); background:rgba(77,141,255,.16); box-shadow:0 0 0 1px var(--science) inset}
+  .chip .tick{width:16px;height:16px;border-radius:5px;border:1px solid var(--faint);display:grid;place-items:center;font-size:11px;color:transparent}
+  .chip.sel .tick{background:var(--science);border-color:var(--science);color:#fff}
+  .navrow{display:flex; gap:10px; margin-top:26px; align-items:center}
+  .navrow .sp{flex:1}
+
+  /* path timeline in builder */
+  .ptl{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:20px; padding:14px; background:#0f1730;
+    border:1px solid var(--line); border-radius:14px}
+  .ptl .pn{font-size:12px; padding:5px 10px; border-radius:8px; border:1px solid var(--line); display:flex; align-items:center; gap:6px; white-space:nowrap}
+  .ptl .pn .d{width:7px;height:7px;border-radius:50%;background:var(--pc);box-shadow:0 0 7px var(--pc)}
+  .ptl .arr{color:var(--faint); font-size:13px}
+  .ptl .now{border-color:var(--start); box-shadow:0 0 0 1px var(--start) inset}
+
+  .cands{display:flex; flex-direction:column; gap:10px; margin-top:6px}
+  .cand{cursor:pointer; text-align:left; display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:13px;
+    border:1px solid var(--line); background:#0f1730; color:var(--ink); transition:border-color .12s, transform .08s, background .12s}
+  .cand:hover{border-color:var(--ac); transform:translateY(-1px); background:#111c39}
+  .cand .pip{width:9px;height:9px;border-radius:50%;background:var(--ac);box-shadow:0 0 9px var(--ac);flex:0 0 auto}
+  .cand .cl{flex:1}
+  .cand .cl .nm{font-weight:600; font-size:15px; font-family:var(--disp)}
+  .cand .cl .mt{font-size:12px; color:var(--mut); margin-top:2px}
+  .cand .best{font-family:var(--mono); font-size:10px; letter-spacing:.06em; color:#cdefa0; border:1px solid #5e8a3a;
+    background:rgba(155,214,80,.12); border-radius:20px; padding:3px 9px; white-space:nowrap}
+  .cand .why{display:block;font-size:12px;line-height:1.4;margin-top:6px;color:#9fb0d6}
+  .cand .why b{color:var(--ac);font-weight:600;font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;margin-right:6px}
+  .cand .chev{color:var(--faint); font-size:18px}
+
+  /* result */
+  .step{display:flex; gap:14px; margin-bottom:4px}
+  .step .rail{display:flex; flex-direction:column; align-items:center}
+  .step .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:12px;
+    background:var(--panel2); border:1px solid var(--ac); color:var(--ink); flex:0 0 auto}
+  .step .ln{flex:1; width:2px; background:var(--line); margin:4px 0}
+  .step:last-child .ln{display:none}
+  .step .body{padding-bottom:18px; flex:1}
+  .step .body .t{font-family:var(--disp); font-weight:600; font-size:16px}
+  .step .body .s{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--mut); margin:3px 0 6px}
+  .step .body .meta{font-size:13px; color:var(--mut); line-height:1.5}
+  .result-actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px}
+
+  /* ---------- graph topbar ---------- */
+  .topbar{position:fixed; top:0; left:0; right:0; z-index:30; display:flex; align-items:center; gap:14px; padding:12px 16px; pointer-events:none; flex-wrap:wrap}
+  .topbar .greet{pointer-events:auto}
+  .greet .hi{font-family:var(--disp); font-weight:600; font-size:clamp(15px,2.4vw,20px); line-height:1.1}
+  .greet .hi b{color:var(--start)}
+  .greet .sub{font-size:12px; color:var(--mut); margin-top:3px; max-width:50ch}
+  .spacer{flex:1}
+  .legend{pointer-events:auto; display:flex; flex-wrap:wrap; gap:5px 11px; justify-content:flex-end; max-width:470px}
+  .lg{display:flex; align-items:center; gap:6px; font-size:11px; color:var(--mut); font-family:var(--mono); white-space:nowrap}
+  .lg .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px currentColor}
+  .menubtn{pointer-events:auto; border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:10px;
+    padding:8px 12px; font-size:12.5px; cursor:pointer; font-family:var(--body)}
+  .menubtn:hover{background:var(--panel2)}
+
+  #viewport{position:fixed; inset:0; cursor:grab; touch-action:none}
+  #viewport.drag{cursor:grabbing}
+  #stage{position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform}
+  #links{position:absolute; left:0; top:0; width:1px; height:1px; overflow:visible}
+  #links path{fill:none; stroke-linecap:round; transition:opacity .25s, stroke-width .25s}
+  #nodes{position:absolute; left:0; top:0; width:1px; height:1px}
+  .stagehdr{position:absolute; transform:translate(-50%,-100%); font-family:var(--mono); font-size:11px; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--faint); white-space:nowrap; text-align:center; pointer-events:none}
+  .stagehdr b{display:block; color:var(--mut); font-size:12px; letter-spacing:.14em; margin-bottom:2px}
+  .node{position:absolute; transform:translate(-50%,-50%); display:flex; align-items:center; gap:8px; padding:9px 13px; border-radius:13px;
+    cursor:pointer; max-width:204px; background:linear-gradient(180deg,var(--panel2),var(--panel)); border:1px solid var(--line);
+    color:var(--ink); font-size:12.5px; line-height:1.22; font-weight:500; white-space:normal; box-shadow:0 5px 16px rgba(0,0,0,.32);
+    -webkit-tap-highlight-color:transparent; user-select:none; transition:opacity .25s, box-shadow .2s, border-color .2s, transform .12s}
+  .node .pip{width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 9px var(--ac);flex:0 0 auto}
+  .node:hover{border-color:color-mix(in srgb,var(--ac) 65%,var(--line))}
+  .node.start{font-family:var(--disp); font-weight:600; font-size:14px; padding:13px 18px; border-color:rgba(255,230,168,.5); box-shadow:0 0 30px rgba(255,230,168,.16)}
+  .node.dim{opacity:.12}
+  .node.hot{border-color:var(--ac); box-shadow:0 0 0 1px var(--ac),0 8px 26px rgba(0,0,0,.5); transform:translate(-50%,-50%) scale(1.03)}
+  .node.sel{border-color:#fff; box-shadow:0 0 0 2px var(--ac),0 10px 30px rgba(0,0,0,.55)}
+  .ctrl{position:fixed; right:14px; bottom:14px; z-index:25; display:flex; flex-direction:column; gap:8px}
+  .ctrl button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:18px;
+    cursor:pointer;display:grid;place-items:center;font-family:var(--disp);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+  .ctrl button:hover{background:var(--panel2);border-color:var(--faint)}
+  .ctrl .sm{font-size:10px;font-family:var(--mono)}
+  #scrim{position:fixed;inset:0;background:rgba(6,10,20,.45);backdrop-filter:blur(2px);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+  #scrim.on{opacity:1;pointer-events:auto}
+  #drawer{position:fixed;z-index:50;background:linear-gradient(180deg,#121a30,#0e1426);border:1px solid var(--line);display:flex;
+    flex-direction:column;transition:transform .34s cubic-bezier(.22,.8,.2,1);overscroll-behavior:contain}
+  @media(min-width:721px){#drawer{top:14px;right:14px;bottom:14px;width:392px;border-radius:18px;transform:translateX(118%)}#drawer.on{transform:translateX(0)}}
+  @media(max-width:720px){#drawer{left:0;right:0;bottom:0;max-height:82vh;border-radius:20px 20px 0 0;border-bottom:none;transform:translateY(110%)}
+    #drawer.on{transform:translateY(0)} .topbar{flex-direction:column;align-items:flex-start} .legend{max-width:none;justify-content:flex-start} .node{max-width:172px;font-size:12px}}
+  .d-top{padding:20px 20px 14px;border-bottom:1px solid var(--line);position:relative}
+  .d-kicker{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
+  .d-kicker .dot{width:9px;height:9px;border-radius:50%;box-shadow:0 0 10px currentColor}
+  .d-title{font-family:var(--disp);font-weight:600;font-size:21px;margin:0;line-height:1.14;letter-spacing:-.01em}
+  .d-close{position:absolute;top:15px;right:15px;width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--mut);cursor:pointer;font-size:16px;display:grid;place-items:center}
+  .d-close:hover{color:var(--ink)}
+  .d-body{padding:18px 20px 26px;overflow-y:auto}
+  .desc{font-size:14px;line-height:1.55;color:var(--ink);margin:0 0 18px}
+  .sec{margin-bottom:16px}
+  .sec h4{font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+  .kv{font-size:13.5px;line-height:1.5;color:var(--ink)}
+  .kv.intl{background:color-mix(in srgb,var(--intl) 12%,transparent);border:1px solid color-mix(in srgb,var(--intl) 40%,var(--line));border-radius:10px;padding:10px 12px}
+  .pills{display:flex;flex-wrap:wrap;gap:7px}
+  .pill{font-size:12.5px;color:var(--ink);background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:8px;padding:5px 10px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:border-color .15s,background .15s}
+  .pill:hover{border-color:var(--faint);background:rgba(255,255,255,.07)}
+  .pill .d{width:7px;height:7px;border-radius:50%;background:var(--pc);box-shadow:0 0 7px var(--pc)}
+  .hint{font-size:12px;color:var(--faint);line-height:1.5}
+  #help{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:24;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:13px;max-width:92vw;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+  #help p{margin:0;font-size:12.5px;color:var(--mut)} #help b{color:var(--ink)} #help button{background:none;border:none;color:var(--start);font-family:var(--mono);font-size:12px;cursor:pointer}
+  @media(max-width:720px){#help{bottom:70px}}
+  .foot{position:fixed;left:14px;bottom:12px;z-index:20;font-size:10px;color:var(--faint);font-family:var(--mono);max-width:46vw}
+  @media(max-width:720px){.foot{display:none}}
+  @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+  #printArea{display:none}
+  @media print{
+    body.printing > *:not(#printArea){display:none!important}
+    body.printing #printArea{display:block!important;position:static;color:#000;max-width:720px;margin:0 auto}
+  }
+  .sendnote{font-size:11.5px;color:var(--faint);margin-top:10px;min-height:14px}
+</style>
+</head>
+<body>
+
+<!-- ============ GATE ============ -->
+<div id="gate" class="screen on"><div class="center"><div class="card">
+  <p class="kick">Pathways · After Class 10</p>
+  <h1>Every road from <em>Class 10</em> onward.</h1>
+  <p class="lede">Streams, degrees, professional tracks and careers — and how they connect. Enter a few details to begin.</p>
+  <div class="field"><label for="nm">Student name</label><input id="nm" type="text" placeholder="e.g. Aarav Sharma" autocomplete="name"><div class="err" id="nmErr"></div></div>
+  <div class="field"><label for="em">Email address</label><input id="em" type="email" placeholder="name@example.com" autocomplete="email"><div class="err" id="emErr"></div></div>
+  <button class="btn full" id="go" disabled>Continue →</button>
+  <p class="privacy" id="gateNote">Your name and email are logged so the creator knows this tool is being used — they aren't used for anything else.</p>
+</div></div></div>
+
+<!-- ============ CHOOSER ============ -->
+<div id="chooser" class="screen"><div class="center"><div class="card">
+  <p class="kick" id="ch-kick">Welcome</p>
+  <h1>Hi <em id="ch-name">there</em> — how would you like to explore?</h1>
+  <p class="lede">See the entire landscape of options, or build a personalised path step by step from where you are today.</p>
+  <div class="opts">
+    <button class="opt" id="opt-all"><div class="ic">🗺️</div><h3>View All Paths</h3><p>The full interactive map — every stream, degree and career, and how they merge. Explore freely.</p></button>
+    <button class="opt build" id="opt-build"><div class="ic">🧭</div><h3>Path Builder</h3><p>Answer a few questions about your strengths and goals, and we'll build a path with you — then export it as a PDF.</p></button>
+  </div>
+</div></div></div>
+
+<!-- ============ BUILDER ============ -->
+<div id="builder" class="screen"><div class="center"><div class="card" id="b-card">
+  <div class="backbar"><button class="btn ghost sm" id="b-menu">← Menu</button></div>
+  <div class="prog"><i id="b-prog"></i></div>
+  <div id="b-content"></div>
+</div></div></div>
+
+<!-- ============ GRAPH ============ -->
+<div id="app" class="screen">
+  <div class="topbar">
+    <button class="menubtn" id="g-menu">← Menu</button>
+    <div class="greet">
+      <div class="hi">Hi <b id="who">there</b> 👋 — the full map</div>
+      <div class="sub">Tap any box to light up every route that flows <i>through</i> it — that's where paths merge.</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div id="viewport"><div id="stage"><svg id="links"></svg><div id="nodes"></div></div></div>
+  <div class="ctrl"><button id="zin">+</button><button id="zout">−</button><button id="fit" class="sm">FIT</button><button id="reset" class="sm">RESET</button></div>
+  <div id="help"><p><b>Tap</b> a path to trace it · <b>drag</b> to pan · <b>scroll/pinch</b> to zoom.</p><button onclick="document.getElementById('help').remove()">Got it</button></div>
+  <p class="foot">Overview of common routes — eligibility &amp; exams vary by board, state &amp; university. Verify officially.</p>
+  <div id="scrim"></div>
+  <div id="drawer"><div class="d-top"><div class="d-kicker"><span class="dot"></span><span id="dk"></span></div><h3 class="d-title" id="dt"></h3><button class="d-close" id="dclose">✕</button></div><div class="d-body" id="dbody"></div></div>
+</div>
+
+<script>
+/* ============ STAGES & CATEGORIES ============ */
+const STAGES=[{t:"Stage 0",n:"After Class 10"},{t:"Stage 1",n:"Class 11–12 / Diploma"},{t:"Stage 2",n:"Undergraduate"},{t:"Stage 3",n:"Postgraduate / Professional"},{t:"Stage 4",n:"Careers"}];
+const CAT={science:'Science / Engineering',commerce:'Commerce / Management',arts:'Arts / Humanities',vocational:'Vocational / Diploma',design:'Design / Media',medical:'Medical / Life Sci',pg:'Postgraduate',career:'Career',intl:'International',start:'Start'};
+
+/* ============ NODES ============ */
+const N=[
+  {id:'after10',s:0,c:'start',l:'After Class 10',desc:"The big fork. Your Class 11–12 stream (or a diploma / ITI) opens or narrows what comes next — but many routes reconnect later, so few doors close forever."},
+  {id:'sci_pcm',s:1,c:'science',l:'Science · PCM',desc:"Physics, Chemistry, Maths. The widest-opening stream — engineering, architecture, pure science, data, design and more.",dur:"2 years (11–12)",entry:"10th pass; school science cutoffs vary."},
+  {id:'sci_pcm_cs',s:1,c:'science',l:'Science · PCM + Computer Science',desc:"PCM plus Computer Science — everything PCM offers, with a head start for computing and BCA.",dur:"2 years",entry:"10th pass; CS elective offered by school."},
+  {id:'sci_pcb',s:1,c:'science',l:'Science · PCB',desc:"Physics, Chemistry, Biology — the gateway to medicine and the life sciences.",dur:"2 years",entry:"10th pass; often a higher science cutoff."},
+  {id:'sci_pcmb',s:1,c:'science',l:'Science · PCMB',desc:"PCM + Biology together — keeps both engineering and medical doors open (heavier load).",dur:"2 years",entry:"Strong 10th marks."},
+  {id:'com_maths',s:1,c:'commerce',l:'Commerce · with Maths',desc:"Accounting, economics and business with Maths — keeps BBA, BCA, economics and data analytics open.",dur:"2 years",entry:"10th pass."},
+  {id:'com_cs',s:1,c:'commerce',l:'Commerce · with Computer Science',desc:"Business plus coding basics — a clean route into BCA and IT.",dur:"2 years",entry:"10th pass; CS elective."},
+  {id:'com_plain',s:1,c:'commerce',l:'Commerce · without Maths',desc:"Accounts, business studies and economics — geared to CA, finance and management.",dur:"2 years",entry:"10th pass."},
+  {id:'arts',s:1,c:'arts',l:'Arts / Humanities',desc:"History, political science, economics, psychology, languages, sociology — a broad base for law, civil services, design, media and the social sciences.",dur:"2 years",entry:"10th pass."},
+  {id:'voc_12',s:1,c:'vocational',l:'Vocational stream (11–12)',desc:"Job-ready skills (IT, retail, healthcare, etc.) within 11–12, with a path to B.Voc and other degrees.",dur:"2 years",entry:"10th pass."},
+  {id:'diploma',s:1,c:'vocational',l:'Polytechnic Diploma (Engineering)',desc:"A 3-year hands-on engineering diploma — an alternative to 11–12 that can lateral-enter B.Tech in the 2nd year.",dur:"3 years",entry:"10th pass; state polytechnic admission / DCET."},
+  {id:'iti',s:1,c:'vocational',l:'ITI (Trade Certificate)',desc:"Industrial Training Institute — a short trade certificate (electrician, fitter, etc.) for quick employability or apprenticeships.",dur:"1–2 years",entry:"10th (sometimes 8th) pass."},
+  {id:'paramedical_dip',s:1,c:'medical',l:'Paramedical Diploma',desc:"Diploma in a healthcare-support trade — lab technology, radiology, nursing aide and more.",dur:"1–3 years",entry:"10th / 12th depending on the course."},
+  {id:'nios',s:1,c:'vocational',l:'Open Schooling (NIOS)',desc:"A flexible board equivalent to regular 11–12 — rejoins all the same undergraduate routes.",dur:"2 years (flexible)",entry:"10th pass."},
+  {id:'btech',s:2,c:'science',l:'B.Tech / B.E. (Engineering)',desc:"4-year engineering across branches — CSE, Mechanical, Chemical, Electrical and more.",dur:"4 years",entry:"PCM in 12th + JEE / KCET / COMEDK / BITSAT; or Diploma → lateral entry to 2nd year.",intl:"GRE → MS abroad, or credit-transfer routes."},
+  {id:'barch',s:2,c:'science',l:'B.Arch (Architecture)',desc:"5-year licensed architecture degree.",dur:"5 years",entry:"PCM + NATA / JEE Paper 2."},
+  {id:'bsc',s:2,c:'science',l:'B.Sc (Phy / Chem / Maths / CS / Bio)',desc:"3-year science degree across disciplines — a flexible base for research, data, teaching and more.",dur:"3 years",entry:"Relevant science subjects in 12th; CUET / university merit.",intl:"MS abroad or research after."},
+  {id:'bsms',s:2,c:'science',l:'BS-MS / BS (Research)',desc:"A 4–5 year research degree at IISERs and IISc for a science / scientist track.",dur:"4–5 years",entry:"PCM/PCB; IAT / JEE Advanced / NEST.",intl:"PhD abroad is the usual next step."},
+  {id:'bstat',s:2,c:'science',l:'B.Stat / B.Math (ISI · CMI)',desc:"Elite statistics and mathematics degrees with tiny, very selective intakes.",dur:"3 years",entry:"Strong maths; ISI / CMI entrance.",intl:"Premier routes to MS / PhD abroad."},
+  {id:'bsc_ds',s:2,c:'science',l:'B.Sc Data Science / Statistics',desc:"Analytics-focused undergrad blending maths, statistics and computing.",dur:"3–4 years",entry:"Maths in 12th; university / IIT-Madras qualifier.",intl:"MS in Data Science abroad."},
+  {id:'bca',s:2,c:'science',l:'BCA (Computer Applications)',desc:"Software-focused bachelor's — programming, databases, web and applications.",dur:"3 years",entry:"Any 12th, usually with Maths or Computer Science (rules vary by university).",intl:"GRE → MS abroad after."},
+  {id:'mbbs',s:2,c:'medical',l:'MBBS / BDS',desc:"Medicine and dentistry.",dur:"5.5 / 5 years",entry:"PCB + NEET-UG."},
+  {id:'bpharm',s:2,c:'medical',l:'B.Pharm (Pharmacy)',desc:"Pharmaceutical science, formulation and industry.",dur:"4 years",entry:"PCM or PCB; state pharmacy CET.",intl:"MS / Pharm abroad possible."},
+  {id:'bsc_nursing',s:2,c:'medical',l:'B.Sc Nursing / Allied Health',desc:"Nursing and allied-health professions in hospitals and clinics.",dur:"4 years",entry:"PCB; CUET / state exams."},
+  {id:'bsc_agri',s:2,c:'medical',l:'B.Sc Agriculture',desc:"Agriculture and allied sciences — agronomy, horticulture, food tech.",dur:"4 years",entry:"PCB/PCM; ICAR / state exams."},
+  {id:'bcom',s:2,c:'commerce',l:'B.Com / B.Com (Hons)',desc:"Accounting, finance and business fundamentals.",dur:"3 years",entry:"Commerce (or any stream); CUET / merit.",intl:"Master's abroad after."},
+  {id:'bba',s:2,c:'commerce',l:'BBA / BMS',desc:"Management foundations — marketing, finance, operations, HR.",dur:"3 years",entry:"Any stream; CUET / IPMAT / university tests.",intl:"Common feeder to an MBA abroad."},
+  {id:'bms_ipm',s:2,c:'commerce',l:'Integrated BBA-MBA (IPM)',desc:"A 5-year integrated management programme at IIMs and others — ends with an MBA.",dur:"5 years",entry:"Any stream; IPMAT / JIPMAT."},
+  {id:'ca',s:2,c:'commerce',l:'CA / CS / CMA (Professional)',desc:"Professional chartered-accountant, company-secretary and cost-accountant tracks.",dur:"3–5 years (with articleship)",entry:"After 12th via the Foundation route; commerce common but open."},
+  {id:'bhm',s:2,c:'commerce',l:'BHM (Hotel Management)',desc:"Hospitality, culinary and hotel operations management.",dur:"3–4 years",entry:"Any stream; NCHMCT JEE / university."},
+  {id:'ba',s:2,c:'arts',l:'BA (Eco / Eng / Psych / Pol-Sci…)',desc:"Humanities and social-science degrees across many subjects.",dur:"3 years",entry:"Any stream (subject-dependent); CUET / merit.",intl:"MA / MS abroad after."},
+  {id:'ba_llb',s:2,c:'arts',l:'BA LLB (Integrated Law)',desc:"5-year integrated law degree.",dur:"5 years",entry:"Any 12th stream; CLAT / AILET / state CETs."},
+  {id:'bjmc',s:2,c:'arts',l:'BA Journalism & Mass Comm',desc:"Media, journalism, content, advertising and PR.",dur:"3 years",entry:"Any stream; CUET / university tests."},
+  {id:'bdes',s:2,c:'design',l:'B.Des (Design)',desc:"Product, communication, UX, fashion and industrial design.",dur:"4 years",entry:"Any stream; UCEED / NID DAT / NIFT.",intl:"Portfolio → design schools abroad."},
+  {id:'bfa',s:2,c:'design',l:'BFA (Fine Arts)',desc:"Painting, sculpture, applied and visual arts.",dur:"4 years",entry:"Any stream; portfolio / drawing test."},
+  {id:'bvoc',s:2,c:'vocational',l:'B.Voc (Vocational Degree)',desc:"A skill-oriented degree (IT, healthcare, retail, automotive, etc.).",dur:"3 years",entry:"12th, or a vocational / diploma background."},
+  {id:'nda',s:2,c:'vocational',l:'NDA → Armed Forces',desc:"Officer entry to the Army, Navy and Air Force via the National Defence Academy.",dur:"3 yr academy + training",entry:"UPSC NDA + SSB; PCM for Air Force/Navy, any stream for the Army wing."},
+  {id:'intl_ug',s:2,c:'intl',l:'Undergraduate Abroad 🌐',desc:"A bachelor's degree at an international university.",dur:"3–4 years",entry:"12th + SAT/ACT, IELTS/TOEFL, essays; or a foundation programme.",intl:"USA, UK, Canada, Australia, Germany, Singapore and more."},
+  {id:'mtech',s:3,c:'pg',l:'M.Tech / ME',desc:"Advanced engineering specialisation and research.",dur:"2 years",entry:"B.Tech/B.E. + GATE (or B.Sc + qualifying)."},
+  {id:'mca',s:3,c:'pg',l:'MCA',desc:"Master of Computer Applications — deeper software, systems and architecture.",dur:"2 years",entry:"BCA / B.Sc CS-IT / any grad with Maths; NIMCET / university."},
+  {id:'msc',s:3,c:'pg',l:'M.Sc',desc:"Advanced pure or applied science.",dur:"2 years",entry:"Relevant B.Sc; CUET-PG / university."},
+  {id:'march',s:3,c:'pg',l:'M.Arch',desc:"Advanced architecture and urban design.",dur:"2 years",entry:"B.Arch + GATE / university."},
+  {id:'mdes',s:3,c:'pg',l:'M.Des / MFA',desc:"Advanced design and fine art.",dur:"2 years",entry:"Design/art bachelor's + CEED / portfolio."},
+  {id:'mpharm',s:3,c:'pg',l:'M.Pharm',desc:"Pharmaceutical specialisation and research.",dur:"2 years",entry:"B.Pharm + GPAT."},
+  {id:'md_ms',s:3,c:'pg',l:'MD / MS (Medical)',desc:"Clinical specialisation after MBBS.",dur:"3 years",entry:"MBBS + NEET-PG."},
+  {id:'mba',s:3,c:'pg',l:'MBA / PGDM',desc:"Management across functions — the great convergence point for almost any degree.",dur:"2 years",entry:"Any bachelor's + CAT / XAT / GMAT / state CETs.",intl:"GMAT → MBA abroad."},
+  {id:'mcom',s:3,c:'pg',l:'M.Com',desc:"Advanced commerce, accounting and finance.",dur:"2 years",entry:"B.Com or related."},
+  {id:'ca_final',s:3,c:'pg',l:'CA / CS / CMA (Final)',desc:"Qualifying as a chartered accountant / company secretary / cost accountant.",dur:"varies",entry:"Clear Intermediate + articleship → Final."},
+  {id:'ma',s:3,c:'pg',l:'MA',desc:"Advanced humanities and social science.",dur:"2 years",entry:"Relevant BA; CUET-PG / university."},
+  {id:'llm',s:3,c:'pg',l:'LLM',desc:"Master of Laws.",dur:"1–2 years",entry:"LLB + CLAT-PG / university."},
+  {id:'ms_abroad',s:3,c:'intl',l:'MS Abroad 🌐',desc:"A master's degree at an international university — the most common global next step from almost any bachelor's.",dur:"1.5–2 years",entry:"Relevant bachelor's + GRE/GMAT, IELTS/TOEFL.",intl:"USA, Germany, Canada, UK, Australia and more."},
+  {id:'phd',s:3,c:'pg',l:'PhD / Research',desc:"Doctoral research and an academic / R&D career.",dur:"3–6 years",entry:"Master's (or integrated) + NET / GATE / institute exam.",intl:"Funded PhD positions worldwide."},
+  {id:'civils',s:3,c:'career',l:'Civil Services (UPSC / State)',desc:"IAS, IPS, IFS and allied services — open to any graduate.",dur:"1–2 yr prep",entry:"Any bachelor's; UPSC CSE / state PSC."},
+  {id:'car_software',s:4,c:'career',l:'Software & IT',desc:"Development, cloud, systems and product engineering."},
+  {id:'car_data',s:4,c:'career',l:'Data Science & AI',desc:"Analytics, machine learning and applied research."},
+  {id:'car_research',s:4,c:'career',l:'Research & Academia',desc:"Science, R&D and teaching."},
+  {id:'car_design',s:4,c:'career',l:'Design & Creative',desc:"Product, visual, UX and creative industries."},
+  {id:'car_medicine',s:4,c:'career',l:'Medicine & Healthcare',desc:"Clinical practice, pharma and allied health."},
+  {id:'car_finance',s:4,c:'career',l:'Finance, Banking & Consulting',desc:"Markets, advisory, accounting and strategy."},
+  {id:'car_business',s:4,c:'career',l:'Business & Entrepreneurship',desc:"Management, operations and founding ventures."},
+  {id:'car_law',s:4,c:'career',l:'Law & Judiciary',desc:"Litigation, corporate law and the bench."},
+  {id:'car_govt',s:4,c:'career',l:'Government & Defence',desc:"Civil services, public administration and the armed forces."},
+  {id:'car_global',s:4,c:'intl',l:'Global Career 🌐',desc:"Working and building a career abroad."},
+];
+
+/* ============ EDGES ============ */
+const Eraw=[
+ ['after10','sci_pcm'],['after10','sci_pcm_cs'],['after10','sci_pcb'],['after10','sci_pcmb'],['after10','com_maths'],['after10','com_cs'],['after10','com_plain'],['after10','arts'],['after10','voc_12'],['after10','diploma'],['after10','iti'],['after10','paramedical_dip'],['after10','nios'],
+ ['sci_pcm','btech'],['sci_pcm','barch'],['sci_pcm','bdes'],['sci_pcm','bpharm'],['sci_pcm','bsc'],['sci_pcm','bsms'],['sci_pcm','bstat'],['sci_pcm','bsc_ds'],['sci_pcm','bca'],['sci_pcm','bba'],['sci_pcm','ba_llb'],['sci_pcm','nda'],['sci_pcm','intl_ug'],
+ ['sci_pcm_cs','btech'],['sci_pcm_cs','bsc'],['sci_pcm_cs','bca'],['sci_pcm_cs','bsc_ds'],['sci_pcm_cs','bsms'],['sci_pcm_cs','bstat'],['sci_pcm_cs','barch'],['sci_pcm_cs','bdes'],['sci_pcm_cs','bba'],['sci_pcm_cs','ba_llb'],['sci_pcm_cs','nda'],['sci_pcm_cs','intl_ug'],['sci_pcm_cs','bpharm'],
+ ['sci_pcb','mbbs'],['sci_pcb','bpharm'],['sci_pcb','bsc'],['sci_pcb','bsc_nursing'],['sci_pcb','bsc_agri'],['sci_pcb','bsms'],['sci_pcb','bba'],['sci_pcb','ba_llb'],['sci_pcb','intl_ug'],
+ ['sci_pcmb','btech'],['sci_pcmb','mbbs'],['sci_pcmb','bpharm'],['sci_pcmb','bsc'],['sci_pcmb','bsms'],['sci_pcmb','bsc_nursing'],['sci_pcmb','bsc_agri'],['sci_pcmb','bca'],['sci_pcmb','bba'],['sci_pcmb','ba_llb'],['sci_pcmb','nda'],['sci_pcmb','intl_ug'],['sci_pcmb','bstat'],['sci_pcmb','bsc_ds'],
+ ['com_maths','bcom'],['com_maths','bba'],['com_maths','bca'],['com_maths','ca'],['com_maths','bms_ipm'],['com_maths','ba'],['com_maths','ba_llb'],['com_maths','bhm'],['com_maths','bjmc'],['com_maths','intl_ug'],['com_maths','nda'],
+ ['com_cs','bca'],['com_cs','bcom'],['com_cs','bba'],['com_cs','ca'],['com_cs','bms_ipm'],['com_cs','ba'],['com_cs','ba_llb'],['com_cs','bhm'],['com_cs','bjmc'],['com_cs','intl_ug'],['com_cs','bsc_ds'],
+ ['com_plain','bcom'],['com_plain','bba'],['com_plain','ca'],['com_plain','ba'],['com_plain','ba_llb'],['com_plain','bhm'],['com_plain','bjmc'],['com_plain','bms_ipm'],['com_plain','intl_ug'],
+ ['arts','ba'],['arts','ba_llb'],['arts','bfa'],['arts','bjmc'],['arts','bhm'],['arts','bba'],['arts','bdes'],['arts','bca'],['arts','nda'],['arts','intl_ug'],
+ ['voc_12','bvoc'],['voc_12','bca'],['voc_12','bba'],['voc_12','bcom'],['voc_12','ba'],
+ ['diploma','btech'],['diploma','bvoc'],['iti','diploma'],['iti','bvoc'],['paramedical_dip','bsc_nursing'],['paramedical_dip','bvoc'],
+ ['nios','bcom'],['nios','bba'],['nios','ba'],['nios','bca'],['nios','intl_ug'],
+ ['btech','mtech'],['btech','mba'],['btech','ms_abroad'],['btech','phd'],['btech','civils'],['btech','car_software'],['btech','car_data'],
+ ['barch','march'],['barch','mba'],['barch','ms_abroad'],['barch','car_design'],
+ ['bdes','mdes'],['bdes','mba'],['bdes','ms_abroad'],['bdes','car_design'],
+ ['mbbs','md_ms'],['mbbs','mba'],['mbbs','civils'],['mbbs','car_medicine'],
+ ['bpharm','mpharm'],['bpharm','mba'],['bpharm','ms_abroad'],['bpharm','car_medicine'],['bpharm','car_business'],
+ ['bsc_nursing','msc'],['bsc_nursing','mba'],['bsc_nursing','car_medicine'],
+ ['bsc_agri','msc'],['bsc_agri','mba'],['bsc_agri','civils'],['bsc_agri','car_research'],
+ ['bsc','msc'],['bsc','mca'],['bsc','mba'],['bsc','ms_abroad'],['bsc','civils'],['bsc','car_research'],['bsc','car_data'],
+ ['bsms','phd'],['bsms','ms_abroad'],['bsms','car_research'],
+ ['bstat','msc'],['bstat','ms_abroad'],['bstat','phd'],['bstat','car_data'],['bstat','car_finance'],
+ ['bsc_ds','msc'],['bsc_ds','mba'],['bsc_ds','ms_abroad'],['bsc_ds','car_data'],['bsc_ds','car_software'],
+ ['bca','mca'],['bca','mba'],['bca','ms_abroad'],['bca','car_software'],['bca','car_data'],
+ ['bcom','mcom'],['bcom','mba'],['bcom','ca_final'],['bcom','ms_abroad'],['bcom','civils'],['bcom','car_finance'],['bcom','car_business'],
+ ['bba','mba'],['bba','ms_abroad'],['bba','mcom'],['bba','civils'],['bba','car_business'],['bba','car_finance'],
+ ['bms_ipm','ms_abroad'],['bms_ipm','car_business'],['bms_ipm','car_finance'],
+ ['ca','ca_final'],['ca','mba'],['ca','car_finance'],
+ ['bhm','mba'],['bhm','ms_abroad'],['bhm','car_business'],
+ ['ba','ma'],['ba','mba'],['ba','ms_abroad'],['ba','civils'],['ba','car_govt'],['ba','car_research'],
+ ['ba_llb','llm'],['ba_llb','mba'],['ba_llb','civils'],['ba_llb','car_law'],
+ ['bjmc','ma'],['bjmc','mba'],['bjmc','car_business'],['bjmc','car_design'],
+ ['bfa','mdes'],['bfa','mba'],['bfa','car_design'],
+ ['bvoc','mba'],['bvoc','car_business'],['bvoc','car_software'],
+ ['nda','car_govt'],['intl_ug','ms_abroad'],['intl_ug','mba'],['intl_ug','car_global'],['intl_ug','phd'],
+ ['mtech','car_software'],['mtech','car_data'],['mtech','car_research'],['mtech','phd'],
+ ['mca','car_software'],['mca','car_data'],['mca','mba'],['mca','car_business'],
+ ['mba','car_business'],['mba','car_finance'],['mba','car_global'],['mba','car_govt'],
+ ['ms_abroad','car_global'],['ms_abroad','car_software'],['ms_abroad','car_data'],['ms_abroad','car_research'],['ms_abroad','phd'],
+ ['msc','phd'],['msc','car_research'],['msc','car_data'],
+ ['ma','phd'],['ma','civils'],['ma','car_govt'],['ma','car_research'],
+ ['mcom','car_finance'],['mcom','phd'],['mcom','ca_final'],
+ ['mdes','car_design'],['mdes','car_business'],['march','car_design'],['march','car_business'],
+ ['mpharm','car_medicine'],['mpharm','car_research'],['mpharm','car_business'],
+ ['md_ms','car_medicine'],['md_ms','car_research'],['llm','car_law'],['llm','civils'],['llm','car_govt'],
+ ['ca_final','car_finance'],['ca_final','car_business'],['phd','car_research'],['phd','car_global'],['civils','car_govt'],
+];
+
+/* ============ GRAPH HELPERS ============ */
+const BY={}; N.forEach(n=>BY[n.id]=n);
+const OUT={}, IN={}; N.forEach(n=>{OUT[n.id]=[];IN[n.id]=[];});
+Eraw.forEach(([a,b])=>{OUT[a].push(b);IN[b].push(a);});
+function reach(start,adj){const seen=new Set([start]),q=[start];while(q.length){const x=q.shift();(adj[x]||[]).forEach(y=>{if(!seen.has(y)){seen.add(y);q.push(y);}});}return seen;}
+const ORDER=N.map(n=>n.id);
+const student={name:'',email:'',first:'there'};
+
+/* ============ SCREEN MANAGER ============ */
+function setScreen(id){ ['gate','chooser','builder','app'].forEach(s=>document.getElementById(s).classList.toggle('on', s===id)); }
+
+/* ============ GOOGLE SHEET LOGGING ============ */
+/* 1. Create a Google Sheet with header row: Timestamp | Name | Email
+   2. Extensions -> Apps Script -> paste the doGet + doPost script (see the setup notes provided alongside this file)
+   3. Deploy -> New deployment -> Web app -> Execute as: Me -> Who has access: Anyone
+   4. Paste the resulting /exec URL below. */
+const GSHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzCN9y7texvWbP5Ia8FEgSSvRjaVKCOtfbu1gDpygSYRTdwU1z7TIG3hL5oT67cnilOVw/exec';
+
+function logToSheet(name,email){
+  if(!GSHEET_WEBAPP_URL || GSHEET_WEBAPP_URL.indexOf('PASTE_YOUR')===0) { console.warn('Google Sheet logging not configured yet.'); return; }
+  const timestamp=new Date().toISOString();
+  /* Primary: an image-beacon GET request. This is the same technique analytics
+     pixels use — almost no sandbox or content-security-policy blocks a plain
+     image load, even when it blocks fetch()/XHR to third-party domains.
+     The response isn't a real image, so onerror will fire — that's expected
+     and harmless; the GET request has already reached the server by then. */
+  try{
+    const qs=new URLSearchParams({name,email,timestamp}).toString();
+    const beacon=new Image();
+    beacon.onerror=()=>{};
+    beacon.referrerPolicy='no-referrer-when-downgrade';
+    beacon.src=GSHEET_WEBAPP_URL+'?'+qs;
+  }catch(e){ console.warn('Sheet logging (beacon) failed:',e); }
+  /* Secondary: also attempt fetch(), in case the environment allows it — costs
+     nothing if it fails, and some setups support POST but not the GET beacon. */
+  try{
+    fetch(GSHEET_WEBAPP_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({name,email,timestamp})}).catch(()=>{});
+  }catch(e){}
+}
+const nm=document.getElementById('nm'), em=document.getElementById('em'), go=document.getElementById('go');
+const emailRe=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function validate(){const okN=nm.value.trim().length>=1, okE=emailRe.test(em.value.trim()); go.disabled=!(okN&&okE); return {okN,okE};}
+nm.addEventListener('input',()=>{validate();document.getElementById('nmErr').textContent='';nm.classList.remove('bad');});
+em.addEventListener('input',()=>{validate();document.getElementById('emErr').textContent='';em.classList.remove('bad');});
+em.addEventListener('blur',()=>{if(em.value.trim()&&!emailRe.test(em.value.trim())){em.classList.add('bad');document.getElementById('emErr').textContent='Enter a valid email address.';}});
+[nm,em].forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter'&&!go.disabled)submitGate();}));
+go.addEventListener('click',submitGate);
+function submitGate(){const {okN,okE}=validate();
+  if(!okN){nm.classList.add('bad');document.getElementById('nmErr').textContent='Please enter the student name.';return;}
+  if(!okE){em.classList.add('bad');document.getElementById('emErr').textContent='Enter a valid email address.';return;}
+  student.name=nm.value.trim(); student.email=em.value.trim(); student.first=student.name.split(/\s+/)[0];
+  logToSheet(student.name, student.email);
+  document.getElementById('ch-name').textContent=student.first;
+  document.getElementById('who').textContent=student.first;
+  document.getElementById('ch-kick').textContent='Welcome, '+student.first;
+  setScreen('chooser');
+}
+setTimeout(()=>nm.focus(),200);
+
+/* ============ CHOOSER ============ */
+document.getElementById('opt-all').onclick=()=>showGraph();
+document.getElementById('opt-build').onclick=()=>startBuilder();
+document.getElementById('g-menu').onclick=()=>setScreen('chooser');
+document.getElementById('b-menu').onclick=()=>setScreen('chooser');
+
+/* ============ GRAPH RENDER ============ */
+const nodesLayer=document.getElementById('nodes'), linksLayer=document.getElementById('links');
+const elFor={}, pathFor={}; let graphBuilt=false;
+function buildGraphDOM(){
+  if(graphBuilt) return; graphBuilt=true;
+  N.forEach(n=>{ const el=document.createElement('div'); el.className='node'+(n.c==='start'?' start':'');
+    el.style.setProperty('--ac','var(--'+n.c+')'); el.dataset.id=n.id;
+    el.innerHTML=(n.c==='start'?'':'<span class="pip"></span>')+'<span>'+n.l+'</span>';
+    nodesLayer.appendChild(el); elFor[n.id]=el; });
+  Eraw.forEach(([a,b],i)=>{ const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('stroke','var(--'+BY[a].c+')'); p.setAttribute('stroke-width','1.4'); p.setAttribute('opacity','0.16');
+    linksLayer.appendChild(p); pathFor[i]={el:p,a,b}; });
+  STAGES.forEach((st)=>{ const h=document.createElement('div'); h.className='stagehdr';
+    h.innerHTML='<b>'+st.t+'</b>'+st.n; nodesLayer.appendChild(h); headEls.push(h); });
+  document.getElementById('legend').innerHTML=Object.entries(CAT).filter(([k])=>k!=='start')
+    .map(([k,v])=>`<span class="lg"><span class="dot" style="background:var(--${k});color:var(--${k})"></span>${v}</span>`).join('');
+}
+const headEls=[];
+let COLW=350; const GAP=15; const H={}; let POS={};
+function sizeFor(){COLW=innerWidth<=720?230:350;}
+function measure(){N.forEach(n=>H[n.id]=elFor[n.id].offsetHeight||44);}
+function layout(){
+  const cols={}; STAGES.forEach((_,s)=>cols[s]=[]); ORDER.forEach(id=>cols[BY[id].s].push(id)); POS={};
+  Object.keys(cols).forEach(sk=>{const s=+sk,x=s*COLW; let y=0;
+    cols[s].forEach(id=>{const h=H[id]||44; POS[id]={x,y:y+h/2}; y+=h+GAP;});
+    const total=Math.max(0,y-GAP),shift=-total/2; cols[s].forEach(id=>POS[id].y+=shift);});
+  N.forEach(n=>{const p=POS[n.id]; elFor[n.id].style.left=p.x+'px'; elFor[n.id].style.top=p.y+'px';});
+  Object.values(pathFor).forEach(({el,a,b})=>{const A=POS[a],B=POS[b],mx=(A.x+B.x)/2;
+    el.setAttribute('d',`M${A.x},${A.y} C${mx},${A.y} ${mx},${B.y} ${B.x},${B.y}`);});
+  STAGES.forEach((st,si)=>{const ids=cols[si]; if(!ids.length){headEls[si].style.display='none';return;}
+    let minY=Infinity; ids.forEach(id=>minY=Math.min(minY,POS[id].y-(H[id]||44)/2));
+    headEls[si].style.left=(si*COLW)+'px'; headEls[si].style.top=(minY-30)+'px';});
+}
+const stage=document.getElementById('stage'), viewport=document.getElementById('viewport');
+let view={tx:0,ty:0,s:1};
+function applyView(){stage.style.transform=`translate(${view.tx}px,${view.ty}px) scale(${view.s})`;}
+function bbox(){let xn=Infinity,xx=-Infinity,yn=Infinity,yx=-Infinity;N.forEach(n=>{const p=POS[n.id];xn=Math.min(xn,p.x);xx=Math.max(xx,p.x);yn=Math.min(yn,p.y);yx=Math.max(yx,p.y);});return{xn:xn-130,xx:xx+130,yn:yn-90,yx:yx+80};}
+function fit(){const b=bbox(),w=b.xx-b.xn,h=b.yx-b.yn,dw=(innerWidth>720&&drawer.classList.contains('on'))?410:0,aw=innerWidth-30-dw,ah=innerHeight-120;
+  view.s=Math.min(aw/w,ah/h,1.1); view.tx=(innerWidth-dw)/2-((b.xn+b.xx)/2)*view.s; view.ty=innerHeight/2-((b.yn+b.yx)/2)*view.s+18; applyView();}
+const pts=new Map(); let panStart=null,pinch=null,moved=0,downId=null;
+viewport.addEventListener('pointerdown',e=>{pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const nd=e.target.closest('.node');downId=nd?nd.dataset.id:null;moved=0;
+  if(pts.size===1){panStart={x:e.clientX,y:e.clientY,tx:view.tx,ty:view.ty};viewport.classList.add('drag');}
+  else if(pts.size===2){const p=[...pts.values()];pinch={d:dist(p[0],p[1]),s:view.s,mx:(p[0].x+p[1].x)/2,my:(p[0].y+p[1].y)/2,tx:view.tx,ty:view.ty};panStart=null;}
+  try{viewport.setPointerCapture(e.pointerId);}catch(_){}});
+viewport.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&pts.size>=2){const p=[...pts.values()],d=dist(p[0],p[1]);let ns=Math.max(.25,Math.min(2.4,pinch.s*(d/pinch.d)));const k=ns/pinch.s;view.s=ns;view.tx=pinch.mx-(pinch.mx-pinch.tx)*k;view.ty=pinch.my-(pinch.my-pinch.ty)*k;applyView();moved+=10;}
+  else if(panStart){const dx=e.clientX-panStart.x,dy=e.clientY-panStart.y;moved=Math.max(moved,Math.abs(dx)+Math.abs(dy));view.tx=panStart.tx+dx;view.ty=panStart.ty+dy;applyView();}});
+function up(e){pts.delete(e.pointerId);if(pts.size<2)pinch=null;if(pts.size===0){const tap=moved<=6;panStart=null;viewport.classList.remove('drag');if(tap){if(downId&&BY[downId])focusNode(downId);else clearFocus();}downId=null;}}
+viewport.addEventListener('pointerup',up);viewport.addEventListener('pointercancel',up);
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+viewport.addEventListener('wheel',e=>{e.preventDefault();const k=Math.exp(-e.deltaY*0.0014),ns=Math.max(.25,Math.min(2.4,view.s*k)),r=ns/view.s;view.tx=e.clientX-(e.clientX-view.tx)*r;view.ty=e.clientY-(e.clientY-view.ty)*r;view.s=ns;applyView();},{passive:false});
+document.getElementById('zin').onclick=()=>zb(1.25);document.getElementById('zout').onclick=()=>zb(.8);
+document.getElementById('fit').onclick=fit;document.getElementById('reset').onclick=()=>clearFocus();
+function zb(k){const ns=Math.max(.25,Math.min(2.4,view.s*k)),r=ns/view.s,cx=innerWidth/2,cy=innerHeight/2;view.tx=cx-(cx-view.tx)*r;view.ty=cy-(cy-view.ty)*r;view.s=ns;applyView();}
+
+const drawer=document.getElementById('drawer'), scrim=document.getElementById('scrim');
+function focusNode(id){const anc=reach(id,IN),desc=reach(id,OUT),lit=new Set([...anc,...desc]);
+  N.forEach(n=>{const el=elFor[n.id];el.classList.remove('hot','dim','sel');if(n.id===id)el.classList.add('sel');else if(lit.has(n.id))el.classList.add('hot');else el.classList.add('dim');});
+  Object.values(pathFor).forEach(({el,a,b})=>{const on=(anc.has(a)&&anc.has(b))||(desc.has(a)&&desc.has(b));el.setAttribute('opacity',on?0.75:0.03);el.setAttribute('stroke-width',on?2.4:1.2);});
+  openDrawer(BY[id]);}
+function clearFocus(){N.forEach(n=>elFor[n.id]&&elFor[n.id].classList.remove('hot','dim','sel'));
+  Object.values(pathFor).forEach(({el})=>{el.setAttribute('opacity',0.16);el.setAttribute('stroke-width',1.4);});
+  drawer.classList.remove('on');scrim.classList.remove('on');}
+function highlightChain(path){ buildGraphDOM();
+  const set=new Set(path), pairs=new Set(); for(let i=0;i<path.length-1;i++) pairs.add(path[i]+'>'+path[i+1]);
+  N.forEach(n=>{const el=elFor[n.id];el.classList.remove('hot','dim','sel');if(set.has(n.id))el.classList.add('hot');else el.classList.add('dim');});
+  Object.values(pathFor).forEach(({el,a,b})=>{const on=pairs.has(a+'>'+b);el.setAttribute('opacity',on?0.85:0.025);el.setAttribute('stroke-width',on?2.6:1);});
+}
+function neighborPills(ids){if(!ids.length)return '<span class="hint">—</span>';
+  return '<div class="pills">'+ids.map(id=>{const m=BY[id];return `<button class="pill" data-go="${id}" style="--pc:var(--${m.c})"><span class="d"></span>${m.l}</button>`;}).join('')+'</div>';}
+function openDrawer(n){
+  drawer.style.setProperty('--ac','var(--'+n.c+')');
+  const dot=document.querySelector('.d-kicker .dot'); dot.style.background='var(--'+n.c+')'; dot.style.color='var(--'+n.c+')';
+  document.getElementById('dk').textContent=STAGES[n.s].n+' · '+CAT[n.c];
+  document.getElementById('dt').textContent=n.l.replace(' 🌐','');
+  let h=''; if(n.desc)h+=`<p class="desc">${n.desc}</p>`;
+  if(n.dur)h+=`<div class="sec"><h4>Typical duration</h4><div class="kv">${n.dur}</div></div>`;
+  if(n.entry)h+=`<div class="sec"><h4>How you get in</h4><div class="kv">${n.entry}</div></div>`;
+  if(n.intl)h+=`<div class="sec"><h4>International route</h4><div class="kv intl">${n.intl}</div></div>`;
+  const ins=IN[n.id]||[],outs=OUT[n.id]||[];
+  if(ins.length)h+=`<div class="sec"><h4>Reachable from${ins.length>1?' (these merge here)':''}</h4>${neighborPills(ins)}</div>`;
+  if(outs.length)h+=`<div class="sec"><h4>Leads to</h4>${neighborPills(outs)}</div>`;
+  if(!ins.length&&!outs.length)h+=`<div class="hint">A starting point — pick any stream to begin.</div>`;
+  const bd=document.getElementById('dbody');bd.innerHTML=h;bd.scrollTop=0;
+  bd.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',ev=>{ev.stopPropagation();focusNode(b.dataset.go);}));
+  drawer.classList.add('on');if(innerWidth<=720)scrim.classList.add('on');}
+document.getElementById('dclose').onclick=clearFocus;scrim.onclick=clearFocus;
+addEventListener('keydown',e=>{if(e.key==='Escape')clearFocus();});
+
+function showGraph(focusChain){
+  setScreen('app'); buildGraphDOM();
+  requestAnimationFrame(()=>{ sizeFor(); measure(); layout();
+    if(focusChain&&focusChain.length){ highlightChain(focusChain); requestAnimationFrame(()=>{
+      // fit to chain
+      let xn=Infinity,xx=-Infinity,yn=Infinity,yx=-Infinity; focusChain.forEach(id=>{const p=POS[id];xn=Math.min(xn,p.x);xx=Math.max(xx,p.x);yn=Math.min(yn,p.y);yx=Math.max(yx,p.y);});
+      xn-=140;xx+=140;yn-=80;yx+=80; const w=xx-xn,h=yx-yn,aw=innerWidth-30,ah=innerHeight-120;
+      view.s=Math.min(aw/w,ah/h,1.0); view.tx=innerWidth/2-((xn+xx)/2)*view.s; view.ty=innerHeight/2-((yn+yx)/2)*view.s+18; applyView();
+    }); }
+    else { clearFocus(); fit(); }
+  });
+}
+let rT; addEventListener('resize',()=>{ if(!document.getElementById('app').classList.contains('on'))return; clearTimeout(rT); rT=setTimeout(()=>{sizeFor();measure();layout();fit();},140);});
+
+/* ============ PATH BUILDER ============ */
+const B=document.getElementById('b-content'), bProg=document.getElementById('b-prog');
+let bs; // builder state
+function startBuilder(){ bs={phase:'pos', coarse:null, current:null, path:[], ans:{strengths:[],weak:[],aspire:[],style:'',abroad:'',timeline:''}, qi:0}; setScreen('builder'); renderPos(); }
+function setProg(p){ bProg.style.width=Math.round(p*100)+'%'; }
+
+const POS_COARSE=[
+  {v:'c10',l:'Finishing Class 10'},
+  {v:'c12',l:'In / finishing Class 11–12'},
+  {v:'dip',l:'Doing a Diploma / ITI'},
+  {v:'ug',l:'In an Undergraduate course'},
+];
+const STREAMS=['sci_pcm','sci_pcm_cs','sci_pcb','sci_pcmb','com_maths','com_cs','com_plain','arts','voc_12'];
+const DIPS=['diploma','iti','paramedical_dip'];
+const UGS=N.filter(n=>n.s===2).map(n=>n.id);
+
+function renderPos(){
+  setProg(0.08);
+  if(!bs.coarse){
+    B.innerHTML=`<h2 class="qh">Where are you right now, ${esc(student.first)}?</h2>
+      <p class="qsub">We'll start your path from here.</p>
+      <div class="chips" id="cc"></div>`;
+    const cc=document.getElementById('cc');
+    POS_COARSE.forEach(o=>cc.appendChild(chip(o.l,false,()=>{ bs.coarse=o.v; if(o.v==='c10'){bs.current='after10';bs.path=['after10'];gotoProfile();} else renderPos(); })));
+    return;
+  }
+  // sub-selection
+  let list, title;
+  if(bs.coarse==='c12'){ list=STREAMS; title='Which stream are you in?'; }
+  else if(bs.coarse==='dip'){ list=DIPS; title='Which programme?'; }
+  else { list=UGS; title='Which undergraduate course?'; }
+  setProg(0.12);
+  B.innerHTML=`<div class="backbar"><button class="btn ghost sm" id="pback">← Back</button></div>
+    <h2 class="qh">${title}</h2><p class="qsub">Pick the closest match.</p><div class="chips" id="cc"></div>`;
+  document.getElementById('pback').onclick=()=>{bs.coarse=null;renderPos();};
+  const cc=document.getElementById('cc');
+  list.forEach(id=>cc.appendChild(chip(BY[id].l.replace(' 🌐',''),false,()=>{ bs.current=id; bs.path=[id]; gotoProfile(); },'var(--'+BY[id].c+')')));
+}
+
+const QUESTIONS=[
+ {id:'strengths',type:'multi',q:'Which subjects or skills are you strongest in?',sub:'Pick all that apply.',opts:[['maths','Maths'],['physci','Physics / Chemistry'],['bio','Biology'],['comp','Computers / Coding'],['biz','Business / Accounts'],['eco','Economics'],['lang','Languages / Writing'],['art','Art / Design'],['reason','Reasoning / GK']]},
+ {id:'weak',type:'multi',q:'Which do you find hardest?',sub:'Optional — helps us steer around weak spots.',opts:[['maths','Maths'],['physci','Physics / Chemistry'],['bio','Biology'],['comp','Computers / Coding'],['biz','Business / Accounts'],['eco','Economics'],['lang','Languages / Writing'],['art','Art / Design'],['reason','Reasoning / GK']]},
+ {id:'aspire',type:'multi',q:'What excites you most for a career?',sub:'Pick one or more.',opts:[['eng','Building / Engineering'],['med','Medicine / Health'],['research','Scientific research'],['data','Data / AI'],['biz','Business / Startups'],['fin','Finance'],['law','Law'],['design','Creative / Design'],['govt','Government / Defence'],['teach','Teaching / Academia']]},
+ {id:'style',type:'single',q:'Which feels most like you?',sub:'',opts:[['build','Hands-on building'],['analyse','Analytical problem-solving'],['create','Creative making'],['help','Helping people'],['lead','Leading & organising']]},
+ {id:'abroad',type:'single',q:'Open to studying or working abroad?',sub:'',opts:[['yes','Yes, definitely'],['maybe','Maybe'],['no','Prefer to stay in India']]},
+ {id:'timeline',type:'single',q:"After your first degree, you'd rather…",sub:'',opts:[['study','Invest in higher studies'],['earn','Start earning sooner'],['open','Open to either']]},
+];
+function gotoProfile(){ bs.phase='profile'; bs.qi=0; renderQ(); }
+function renderQ(){
+  const q=QUESTIONS[bs.qi]; setProg(0.15+0.5*(bs.qi/QUESTIONS.length));
+  const cur=bs.ans[q.id];
+  B.innerHTML=`<div class="backbar"><button class="btn ghost sm" id="qback">← Back</button>
+      <span class="hint">Question ${bs.qi+1} of ${QUESTIONS.length}</span></div>
+    <h2 class="qh">${q.q}</h2><p class="qsub">${q.sub||''}</p><div class="chips" id="cc"></div>
+    <div class="navrow"><div class="sp"></div><button class="btn" id="qnext">${bs.qi===QUESTIONS.length-1?'See my path →':'Next →'}</button></div>`;
+  const cc=document.getElementById('cc');
+  q.opts.forEach(([v,l])=>{ const on = q.type==='multi' ? cur.includes(v) : cur===v;
+    cc.appendChild(chip(l,on,(el)=>{
+      if(q.type==='multi'){ const i=cur.indexOf(v); if(i>=0)cur.splice(i,1); else cur.push(v); el.classList.toggle('sel'); }
+      else { bs.ans[q.id]=v; [...cc.children].forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); }
+    }, null, q.type==='multi')); });
+  document.getElementById('qback').onclick=()=>{ if(bs.qi===0){ bs.phase='pos'; renderPos(); } else { bs.qi--; renderQ(); } };
+  document.getElementById('qnext').onclick=()=>{
+    if(q.type==='single' && !bs.ans[q.id]){ // require single-selects
+      if(q.id==='style'||q.id==='abroad'||q.id==='timeline'){ /* allow skip with default */ bs.ans[q.id]= q.opts[ q.id==='abroad'?1:(q.id==='timeline'?2:1) ][0]; }
+    }
+    if(bs.qi===QUESTIONS.length-1){ computeWeights(); gotoBuild(); } else { bs.qi++; renderQ(); }
+  };
+}
+
+/* scoring */
+const SMAP={ // strengths -> cat weights
+ maths:{science:2,commerce:1}, physci:{science:2,medical:1}, bio:{medical:2,science:1}, comp:{science:2},
+ biz:{commerce:2}, eco:{commerce:1.5,arts:1}, lang:{arts:2}, art:{design:2,arts:1}, reason:{arts:1,commerce:.5} };
+const AMAP={ // aspirations -> {cat:{},node:{}}
+ eng:{cat:{science:2},node:{btech:3,barch:1,mtech:1,car_software:1}},
+ med:{cat:{medical:3},node:{mbbs:3,bpharm:1,bsc_nursing:1,md_ms:1,car_medicine:2}},
+ research:{cat:{science:1.5,pg:1.5},node:{bsms:3,bsc:1,phd:2,msc:1,car_research:2}},
+ data:{cat:{science:1.5},node:{bsc_ds:3,bca:1.5,bstat:1,car_data:3,mca:1,ms_abroad:.5}},
+ biz:{cat:{commerce:2},node:{bba:2,bms_ipm:1,mba:3,car_business:3}},
+ fin:{cat:{commerce:2},node:{bcom:2,ca:2,ca_final:2,car_finance:3}},
+ law:{cat:{arts:1},node:{ba_llb:3,llm:2,car_law:3}},
+ design:{cat:{design:2},node:{bdes:3,bfa:2,mdes:1,car_design:3}},
+ govt:{cat:{arts:.5,vocational:.5},node:{civils:3,nda:3,car_govt:3}},
+ teach:{cat:{pg:1},node:{phd:2,msc:1,ma:1,car_research:2}} };
+const STYLEMAP={ build:{science:1.5,vocational:1}, analyse:{science:1.5,commerce:1}, create:{design:2,arts:1}, help:{medical:1.5,arts:1}, lead:{commerce:2} };
+let catW={}, nodeB={};
+function add(map,obj,f=1){ for(const k in obj) map[k]=(map[k]||0)+obj[k]*f; }
+function computeWeights(){ catW={}; nodeB={};
+  bs.ans.strengths.forEach(s=>SMAP[s]&&add(catW,SMAP[s]));
+  bs.ans.weak.forEach(w=>SMAP[w]&&add(catW,SMAP[w],-0.6));
+  bs.ans.aspire.forEach(a=>{ if(AMAP[a]){ add(catW,AMAP[a].cat); add(nodeB,AMAP[a].node); } });
+  if(STYLEMAP[bs.ans.style]) add(catW,STYLEMAP[bs.ans.style]);
+  if(bs.ans.abroad==='yes'){ add(catW,{intl:2}); add(nodeB,{intl_ug:3,ms_abroad:3,car_global:3}); }
+  else if(bs.ans.abroad==='maybe'){ add(catW,{intl:.5}); add(nodeB,{intl_ug:1,ms_abroad:1}); }
+  else { add(catW,{intl:-1.5}); }
+  if(bs.ans.timeline==='earn'){ add(catW,{vocational:1.2}); add(nodeB,{bvoc:1,diploma:.5,iti:.5,phd:-1.5,ms_abroad:-.5}); }
+  else if(bs.ans.timeline==='study'){ add(catW,{pg:1.2}); add(nodeB,{phd:1,msc:.5,mtech:.5,ms_abroad:.5}); }
+}
+function scoreNode(id){ const n=BY[id]; return (catW[n.c]||0)+(nodeB[id]||0); }
+
+/* human-readable "why this is recommended" */
+const SL={maths:'Maths',physci:'Physics/Chemistry',bio:'Biology',comp:'Computers/Coding',biz:'Business/Accounts',eco:'Economics',lang:'Languages/Writing',art:'Art/Design',reason:'Reasoning/GK'};
+const AL={eng:'Engineering',med:'Medicine/Health',research:'Research',data:'Data/AI',biz:'Business',fin:'Finance',law:'Law',design:'Design',govt:'Govt/Defence',teach:'Teaching'};
+const STL={build:'hands-on',analyse:'analytical',create:'creative',help:'people-first',lead:'leadership'};
+function reasonsFor(id){ if(!bs||!bs.ans) return null; const n=BY[id];
+  const anchors=[], broad=[];
+  // node-specific aspiration matches — the precise anchors
+  bs.ans.aspire.forEach(a=>{ const A=AMAP[a]; if(A&&A.node&&A.node[id]>0) anchors.push({w:A.node[id]+2,t:'directly fits your goal of '+AL[a]}); });
+  // explicit narrow signals the student gave — valid on their own (not category bleed)
+  if(bs.ans.abroad==='yes' && n.c==='intl') anchors.push({w:3,t:'opens the international route you want'});
+  if(bs.ans.timeline==='study' && n.c==='pg') anchors.push({w:1.4,t:'builds toward the higher studies you prefer'});
+  if(bs.ans.timeline==='earn' && n.c==='vocational') anchors.push({w:1.4,t:'gets you earning sooner'});
+  // broad category reasons — only meaningful alongside a node-specific anchor
+  bs.ans.strengths.forEach(x=>{ const w=SMAP[x]&&SMAP[x][n.c]; if(w>0) broad.push({w,t:'plays to your strength in '+SL[x]}); });
+  bs.ans.aspire.forEach(a=>{ const A=AMAP[a]; if(!A)return; if(A.node&&A.node[id]>0)return; const cw=A.cat&&A.cat[n.c]; if(cw>0) broad.push({w:cw,t:'matches your interest in '+AL[a]}); });
+  if(bs.ans.style){ const w=STYLEMAP[bs.ans.style]&&STYLEMAP[bs.ans.style][n.c]; if(w>0) broad.push({w,t:'suits your '+STL[bs.ans.style]+' style'}); }
+  if(!anchors.length) return null;                       // no precise match → suppress broad-only bleed
+  const pool=anchors.concat(broad).sort((a,b)=>b.w-a.w);
+  const seen=new Set(), top=[]; for(const x of pool){ if(seen.has(x.t))continue; seen.add(x.t); top.push(x.t); if(top.length>=2)break; }
+  const ss=top.join(' · '); return ss.charAt(0).toUpperCase()+ss.slice(1); }
+
+function gotoBuild(){ bs.phase='build'; renderBuild(); }
+function renderBuild(){
+  setProg(0.7);
+  const cur=bs.path[bs.path.length-1], curN=BY[cur];
+  const outs=(OUT[cur]||[]).slice().sort((a,b)=>scoreNode(b)-scoreNode(a));
+  // path timeline
+  const tl=bs.path.map((id,i)=>{const m=BY[id]; return `<span class="pn ${i===bs.path.length-1?'now':''}" style="--pc:var(--${m.c})"><span class="d"></span>${m.l.replace(' 🌐','')}</span>`+(i<bs.path.length-1?'<span class="arr">→</span>':'');}).join('');
+  let html=`<div class="backbar"><button class="btn ghost sm" id="bback">← Back</button><span class="hint">Building your path</span></div>
+    <div class="ptl">${tl}</div>`;
+  if(!outs.length){
+    html+=`<h2 class="qh">You've reached a destination 🎯</h2><p class="qsub">${curN.l.replace(' 🌐','')} is an end-point. Finish to see your plan.</p>
+      <div class="navrow">${bs.path.length>1?'<button class="btn ghost" id="undo">Undo last</button>':''}<div class="sp"></div><button class="btn" id="finish">Finish &amp; view plan →</button></div>`;
+  } else {
+    html+=`<h2 class="qh">Where next?</h2><p class="qsub">From <b>${curN.l.replace(' 🌐','')}</b> — recommendations are ordered for ${esc(student.first)}. Tap one to add it.</p>
+      <div class="cands" id="cands"></div>
+      <div class="navrow">${bs.path.length>1?'<button class="btn ghost" id="undo">Undo last</button>':''}<div class="sp"></div><button class="btn ghost" id="finish">Finish here</button></div>`;
+  }
+  B.innerHTML=html;
+  if(outs.length){ const C=document.getElementById('cands');
+    outs.forEach((id,idx)=>{ const m=BY[id]; const best=idx===0 && scoreNode(id)>0; const why=reasonsFor(id);
+      const b=document.createElement('button'); b.className='cand'; b.style.setProperty('--ac','var(--'+m.c+')');
+      b.innerHTML=`<span class="pip"></span><span class="cl"><span class="nm">${m.l.replace(' 🌐','')}</span><span class="mt">${CAT[m.c]}${m.dur?' · '+m.dur:''}</span>${why?`<span class="why"><b>Why</b>${esc(why)}</span>`:''}</span>${best?'<span class="best">★ Best match</span>':''}<span class="chev">›</span>`;
+      b.onclick=()=>{ bs.path.push(id); if(BY[id].s===4){ gotoDone(); } else renderBuild(); };
+      C.appendChild(b); });
+  }
+  const undo=document.getElementById('undo'); if(undo)undo.onclick=()=>{ bs.path.pop(); renderBuild(); };
+  document.getElementById('finish').onclick=()=>gotoDone();
+  document.getElementById('bback').onclick=()=>{ bs.phase='profile'; bs.qi=QUESTIONS.length-1; renderQ(); };
+}
+
+function gotoDone(){ bs.phase='done'; renderDone(); }
+function renderDone(){
+  setProg(1);
+  const steps=bs.path.map((id,i)=>{const m=BY[id]; const why=reasonsFor(id);
+    return `<div class="step"><div class="rail"><div class="num" style="--ac:var(--${m.c})">${i+1}</div><div class="ln"></div></div>
+      <div class="body"><div class="t">${m.l.replace(' 🌐','')}</div><div class="s">${STAGES[m.s].n} · ${CAT[m.c]}</div>
+      <div class="meta">${[m.dur?'⏳ '+m.dur:'', m.entry?'🎓 '+m.entry:'', why?'✅ <i>Why it fits:</i> '+esc(why):''].filter(Boolean).join('<br>')||''}</div></div></div>`;}).join('');
+  B.innerHTML=`<h2 class="qh">${esc(student.first)}'s pathway 🎉</h2>
+    <p class="qsub">${bs.path.length} step${bs.path.length>1?'s':''}, from where you are today to a career goal. Download it, or see it on the full map.</p>
+    <div style="margin:6px 0 20px">${steps}</div>
+    <div class="result-actions">
+      <button class="btn" id="pdf">⬇ Download PDF</button>
+      <button class="btn ghost" id="onmap">See on full map</button>
+      <button class="btn ghost" id="redo">Rebuild</button>
+    </div>
+    <p class="privacy" id="pdfnote"></p>`;
+  document.getElementById('pdf').onclick=downloadPDF;
+  document.getElementById('onmap').onclick=()=>showGraph(bs.path.slice());
+  document.getElementById('redo').onclick=()=>startBuilder();
+}
+
+/* ============ PDF ============ */
+function profileSummary(){
+  const lbl=(arr,map)=>arr.map(v=>map[v]||v).join(', ')||'—';
+  const SL={maths:'Maths',physci:'Physics/Chemistry',bio:'Biology',comp:'Computers/Coding',biz:'Business/Accounts',eco:'Economics',lang:'Languages/Writing',art:'Art/Design',reason:'Reasoning/GK'};
+  const AL={eng:'Engineering',med:'Medicine/Health',research:'Research',data:'Data/AI',biz:'Business',fin:'Finance',law:'Law',design:'Design',govt:'Govt/Defence',teach:'Teaching'};
+  const ab={yes:'Open to abroad',maybe:'Maybe abroad',no:'Prefers India'}[bs.ans.abroad]||'';
+  const tm={study:'Prefers higher studies',earn:'Prefers earning sooner',open:'Open to either'}[bs.ans.timeline]||'';
+  return {strengths:lbl(bs.ans.strengths,SL), aspirations:lbl(bs.ans.aspire,AL), abroad:ab, timeline:tm};
+}
+function pdfSanitize(t){ return String(t)
+  .replace(/[\u2013\u2014]/g,'-').replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"')
+  .replace(/\u2026/g,'...').replace(/\u00B7/g,'-')
+  .replace(/[^\x20-\x7E]/g,''); }
+
+/* Build a minimal text PDF (Helvetica) from layout items — no external libs */
+function makePDF(items){
+  const PW=595.28, PH=841.89, M=50, CW=PW-2*M, TOP=PH-58, BOT=56;
+  function wrap(t,size){ const max=Math.max(8,Math.floor(CW/(size*0.5))); const words=t.split(/\s+/); const out=[]; let line='';
+    for(const w of words){ const test=line?line+' '+w:w; if(test.length>max && line){out.push(line);line=w;} else line=test; } if(line)out.push(line); return out; }
+  const pages=[[]]; let y=TOP;
+  const put=el=>pages[pages.length-1].push(el);
+  for(const it of items){
+    if(it.rule){ if(y-12<BOT){pages.push([]);y=TOP;} put({rule:1,y:y-4}); y-=16; continue; }
+    const size=it.size||11, lh=Math.round(size*1.34), x=M+(it.x||0), col=it.color||[0.11,0.14,0.23];
+    wrap(pdfSanitize(it.t),size).forEach(ln=>{ if(y-lh<BOT){pages.push([]);y=TOP;} put({t:ln,x,y:y-size,size,bold:!!it.bold,color:col}); y-=lh; });
+    y-=(it.gap||0);
+  }
+  const esc=s=>s.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+  let objNum=5; const contentObjs=[], pageObjs=[], pageRefs=[];
+  pages.forEach(els=>{ let cs='';
+    els.forEach(el=>{ if(el.rule){ cs+=`0.80 0.82 0.86 RG 1 w ${M} ${el.y.toFixed(2)} m ${(PW-M).toFixed(2)} ${el.y.toFixed(2)} l S\n`; }
+      else { const c=el.color; cs+=`BT /${el.bold?'F2':'F1'} ${el.size} Tf ${c[0]} ${c[1]} ${c[2]} rg ${el.x.toFixed(2)} ${el.y.toFixed(2)} Td (${esc(el.t)}) Tj ET\n`; } });
+    const cn=objNum++, pn=objNum++; contentObjs.push({num:cn,data:cs}); pageObjs.push({num:pn,content:cn}); pageRefs.push(pn); });
+  const maxObj=objNum-1, objs={};
+  objs[1]=`<< /Type /Catalog /Pages 2 0 R >>`;
+  objs[2]=`<< /Type /Pages /Kids [${pageRefs.map(n=>n+' 0 R').join(' ')}] /Count ${pageRefs.length} /MediaBox [0 0 ${PW} ${PH}] >>`;
+  objs[3]=`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`;
+  objs[4]=`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`;
+  pageObjs.forEach(p=>{ objs[p.num]=`<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${p.content} 0 R >>`; });
+  contentObjs.forEach(c=>{ objs[c.num]=`<< /Length ${c.data.length} >>\nstream\n${c.data}endstream`; });
+  let pdf='%PDF-1.4\n'; const off=new Array(maxObj+1).fill(0);
+  for(let i=1;i<=maxObj;i++){ off[i]=pdf.length; pdf+=`${i} 0 obj\n${objs[i]}\nendobj\n`; }
+  const xref=pdf.length; pdf+=`xref\n0 ${maxObj+1}\n0000000000 65535 f \n`;
+  for(let i=1;i<=maxObj;i++) pdf+=String(off[i]).padStart(10,'0')+' 00000 n \n';
+  pdf+=`trailer\n<< /Size ${maxObj+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const bytes=new Uint8Array(pdf.length); for(let i=0;i<pdf.length;i++) bytes[i]=pdf.charCodeAt(i)&0xff; return bytes;
+}
+
+function planItems(){
+  const ink=[0.11,0.14,0.23], blue=[0.247,0.482,0.937], gray=[0.47,0.52,0.63], green=[0.18,0.47,0.30];
+  const ps=profileSummary(); const today=new Date().toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+  const it=[];
+  it.push({t:'Education & Career Pathway Plan',bold:true,size:20,gap:4});
+  it.push({t:`${student.name}  ·  ${student.email}  ·  ${today}`,size:10,color:gray,gap:6});
+  it.push({rule:1});
+  it.push({t:'PROFILE',bold:true,size:9,color:gray,gap:2});
+  it.push({t:`Starting point: ${BY[bs.path[0]].l.replace(' 🌐','')}`,bold:true,size:11});
+  it.push({t:`Strengths: ${ps.strengths}`,size:11});
+  it.push({t:`Aspirations: ${ps.aspirations}`,size:11});
+  it.push({t:[ps.abroad,ps.timeline].filter(Boolean).join('  ·  '),size:11,color:gray,gap:8});
+  it.push({rule:1});
+  it.push({t:'YOUR PATHWAY',bold:true,size:13,color:ink,gap:6});
+  bs.path.forEach((id,i)=>{ const n=BY[id];
+    it.push({t:`${i+1}.  ${n.l.replace(' 🌐','')}`,bold:true,size:12,color:blue});
+    it.push({t:`${STAGES[n.s].n}  ·  ${CAT[n.c]}`,size:9.5,color:gray,x:18});
+    if(n.dur) it.push({t:`Duration: ${n.dur}`,size:10,x:18});
+    if(n.entry) it.push({t:`How to get in: ${n.entry}`,size:10,x:18});
+    if(n.intl) it.push({t:`International: ${n.intl}`,size:10,x:18,color:green});
+    const wy=reasonsFor(id); if(wy) it.push({t:`Why it fits: ${wy}`,size:10,x:18,color:gray});
+    it.push({t:i<bs.path.length-1?'|':'',size:10,x:6,color:[0.6,0.65,0.75],gap:i<bs.path.length-1?2:8});
+  });
+  it.push({rule:1});
+  it.push({t:'NEXT ACTIONS',bold:true,size:9,color:gray,gap:2});
+  it.push({t:'- Confirm subject/exam eligibility for each step with the official board, state or university.',size:10.5});
+  it.push({t:'- Note the application windows for the entrance exams named above.',size:10.5});
+  it.push({t:'- Revisit the full map to compare alternative routes that merge into the same goals.',size:10.5,gap:8});
+  it.push({t:'Routes are indicative; verify eligibility and exams officially.',size:8.5,color:gray});
+  return it;
+}
+
+function downloadPDF(){
+  const note=document.getElementById('pdfnote');
+  try{
+    const bytes=makePDF(planItems());
+    const blob=new Blob([bytes],{type:'application/pdf'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=(student.name.replace(/\s+/g,'_')||'student')+'_pathway_plan.pdf';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },1500);
+    if(note) note.textContent='Saved as a PDF to your downloads.';
+  }catch(err){ console.error(err); printFallback(); }
+}
+
+/* Fallback: render a print-only section in this page (no popup) and invoke print */
+function printFallback(){
+  const ps=profileSummary();
+  const rows=bs.path.map((id,i)=>{const n=BY[id];
+    return `<tr><td style="padding:7px 0;border-bottom:1px solid #ddd;vertical-align:top;width:42%"><b>${i+1}. ${n.l.replace(' 🌐','')}</b><br><small style="color:#666">${STAGES[n.s].n} · ${CAT[n.c]}</small></td>
+      <td style="padding:7px 0 7px 14px;border-bottom:1px solid #ddd;vertical-align:top;font-size:13px">${[n.dur?'Duration: '+n.dur:'',n.entry?'Entry: '+n.entry:'',n.intl?'International: '+n.intl:''].filter(Boolean).join('<br>')}</td></tr>`;}).join('');
+  let pa=document.getElementById('printArea'); if(pa) pa.remove();
+  pa=document.createElement('div'); pa.id='printArea';
+  pa.innerHTML=`<h1 style="margin:0 0 4px;font-family:Arial,sans-serif">Education &amp; Career Pathway Plan</h1>
+    <p style="color:#555;font-family:Arial">${student.name} · ${student.email} · ${new Date().toLocaleDateString()}</p>
+    <p style="font-family:Arial"><b>Starting point:</b> ${BY[bs.path[0]].l.replace(' 🌐','')}<br>
+    <b>Strengths:</b> ${ps.strengths}<br><b>Aspirations:</b> ${ps.aspirations}<br>${[ps.abroad,ps.timeline].filter(Boolean).join(' · ')}</p>
+    <h2 style="font-family:Arial">Your pathway</h2><table style="border-collapse:collapse;width:100%;font-family:Arial">${rows}</table>
+    <p style="color:#888;font-size:12px;margin-top:18px;font-family:Arial">Routes are indicative; verify eligibility &amp; exams officially.</p>`;
+  document.body.appendChild(pa);
+  document.body.classList.add('printing');
+  const done=()=>{ document.body.classList.remove('printing'); window.removeEventListener('afterprint',done); };
+  window.addEventListener('afterprint',done);
+  try{ window.print(); }catch(e){}
+  const note=document.getElementById('pdfnote'); if(note) note.textContent='If the download was blocked, use your browser’s print dialog and choose “Save as PDF”.';
+}
+
+/* ============ small UI helpers ============ */
+function chip(label,on,onClick,color,multi){ const b=document.createElement('button'); b.className='chip'+(on?' sel':'');
+  if(color) b.style.borderColor='color-mix(in srgb,'+color+' 45%, var(--line))';
+  b.innerHTML=(multi?'<span class="tick">✓</span>':'')+'<span>'+label+'</span>';
+  b.onclick=()=>onClick(b); return b; }
+function esc(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+</script>
+</body>
+</html>
