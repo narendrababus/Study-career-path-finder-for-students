@@ -196,6 +196,14 @@
     body.printing #printArea{display:block!important;position:static;color:#000;max-width:720px;margin:0 auto}
   }
   .sendnote{font-size:11.5px;color:var(--faint);margin-top:10px;min-height:14px}
+  @media(max-width:720px){
+    .legend{display:none}
+    .greet .sub{display:none}
+    .greet .hi{font-size:15px}
+    .topbar{padding:10px 12px}
+    #drawer{max-height:72vh}
+    .node{max-width:178px;font-size:12.5px}
+  }
 </style>
 </head>
 <body>
@@ -475,6 +483,16 @@ function applyView(){stage.style.transform=`translate(${view.tx}px,${view.ty}px)
 function bbox(){let xn=Infinity,xx=-Infinity,yn=Infinity,yx=-Infinity;N.forEach(n=>{const p=POS[n.id];xn=Math.min(xn,p.x);xx=Math.max(xx,p.x);yn=Math.min(yn,p.y);yx=Math.max(yx,p.y);});return{xn:xn-130,xx:xx+130,yn:yn-90,yx:yx+80};}
 function fit(){const b=bbox(),w=b.xx-b.xn,h=b.yx-b.yn,dw=(innerWidth>720&&drawer.classList.contains('on'))?410:0,aw=innerWidth-30-dw,ah=innerHeight-120;
   view.s=Math.min(aw/w,ah/h,1.1); view.tx=(innerWidth-dw)/2-((b.xn+b.xx)/2)*view.s; view.ty=innerHeight/2-((b.yn+b.yx)/2)*view.s+18; applyView();}
+/* On phones, fitting the whole 5-stage graph makes everything unreadable.
+   Instead open at a legible zoom anchored on the start node; the user pans right. */
+function initialView(){
+  if(innerWidth>720){ fit(); return; }
+  const root=POS['after10']||{x:0,y:0};
+  view.s=0.9;
+  view.tx=innerWidth*0.20 - root.x*view.s;
+  view.ty=innerHeight*0.46 - root.y*view.s;
+  applyView();
+}
 const pts=new Map(); let panStart=null,pinch=null,moved=0,downId=null;
 viewport.addEventListener('pointerdown',e=>{pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const nd=e.target.closest('.node');downId=nd?nd.dataset.id:null;moved=0;
   if(pts.size===1){panStart={x:e.clientX,y:e.clientY,tx:view.tx,ty:view.ty};viewport.classList.add('drag');}
@@ -534,10 +552,10 @@ function showGraph(focusChain){
       xn-=140;xx+=140;yn-=80;yx+=80; const w=xx-xn,h=yx-yn,aw=innerWidth-30,ah=innerHeight-120;
       view.s=Math.min(aw/w,ah/h,1.0); view.tx=innerWidth/2-((xn+xx)/2)*view.s; view.ty=innerHeight/2-((yn+yx)/2)*view.s+18; applyView();
     }); }
-    else { clearFocus(); fit(); }
+    else { clearFocus(); initialView(); }
   });
 }
-let rT; addEventListener('resize',()=>{ if(!document.getElementById('app').classList.contains('on'))return; clearTimeout(rT); rT=setTimeout(()=>{sizeFor();measure();layout();fit();},140);});
+let rT; addEventListener('resize',()=>{ if(!document.getElementById('app').classList.contains('on'))return; clearTimeout(rT); rT=setTimeout(()=>{sizeFor();measure();layout();initialView();},140);});
 
 /* ============ PATH BUILDER ============ */
 const B=document.getElementById('b-content'), bProg=document.getElementById('b-prog');
