@@ -155,6 +155,16 @@
   .node.dim{opacity:.12}
   .node.hot{border-color:var(--ac); box-shadow:0 0 0 1px var(--ac),0 8px 26px rgba(0,0,0,.5); transform:translate(-50%,-50%) scale(1.03)}
   .node.sel{border-color:#fff; box-shadow:0 0 0 2px var(--ac),0 10px 30px rgba(0,0,0,.55)}
+  .node.picked{border-color:var(--intl)!important}
+  .node.picked::after{content:"✓";position:absolute;top:-8px;right:-8px;width:19px;height:19px;border-radius:50%;background:var(--intl);color:#0a0f1e;font-size:12px;font-weight:800;display:grid;place-items:center;box-shadow:0 0 9px rgba(155,214,80,.6)}
+  .node.gdisabled{opacity:.16;filter:saturate(.4)}
+  .node.selectable{box-shadow:0 0 0 1px var(--ac),0 0 18px rgba(255,255,255,.13)}
+  #picksbar{position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-12px);z-index:28;display:none;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:30px;padding:7px 8px 7px 16px;box-shadow:0 8px 24px rgba(0,0,0,.45);opacity:0;transition:opacity .2s,transform .2s}
+  #picksbar.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0)}
+  #picksbar .pl{font-size:13px;color:var(--ink)} #picksbar .pl b{color:var(--intl)}
+  #picksbar .pb{font-family:var(--mono);font-size:12px;border:1px solid var(--line);background:#0f1730;color:var(--ink);border-radius:20px;padding:6px 12px;cursor:pointer}
+  #picksbar .pb:hover{border-color:var(--faint)}
+  .selhint{font-size:11.5px;color:var(--faint);text-align:center;margin-top:8px}
   .ctrl{position:fixed; right:14px; bottom:14px; z-index:25; display:flex; flex-direction:column; gap:8px}
   .ctrl button{width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:18px;
     cursor:pointer;display:grid;place-items:center;font-family:var(--disp);box-shadow:0 4px 14px rgba(0,0,0,.4)}
@@ -248,6 +258,7 @@
     <div class="spacer"></div>
     <div class="legend" id="legend"></div>
   </div>
+  <div id="picksbar"><span class="pl">✓ <b id="picksN">0</b> selected</span><button class="pb" id="picksPdf">Save PDF</button><button class="pb" id="picksClear">Clear</button></div>
   <div id="viewport"><div id="stage"><svg id="links"></svg><div id="nodes"></div></div></div>
   <div class="ctrl"><button id="zin">+</button><button id="zout">−</button><button id="fit" class="sm">FIT</button><button id="reset" class="sm">RESET</button></div>
   <div id="help"><p><b>Tap</b> a path to trace it · <b>drag</b> to pan · <b>scroll/pinch</b> to zoom.</p><button onclick="document.getElementById('help').remove()">Got it</button></div>
@@ -515,8 +526,8 @@ function focusNode(id){const anc=reach(id,IN),desc=reach(id,OUT),lit=new Set([..
   Object.values(pathFor).forEach(({el,a,b})=>{const on=(anc.has(a)&&anc.has(b))||(desc.has(a)&&desc.has(b));el.setAttribute('opacity',on?0.75:0.03);el.setAttribute('stroke-width',on?2.4:1.2);});
   openDrawer(BY[id]);}
 function clearFocus(){N.forEach(n=>elFor[n.id]&&elFor[n.id].classList.remove('hot','dim','sel'));
-  Object.values(pathFor).forEach(({el})=>{el.setAttribute('opacity',0.16);el.setAttribute('stroke-width',1.4);});
-  drawer.classList.remove('on');scrim.classList.remove('on');}
+  drawer.classList.remove('on');scrim.classList.remove('on');
+  refreshGraphStates();}
 function highlightChain(path){ buildGraphDOM();
   const set=new Set(path), pairs=new Set(); for(let i=0;i<path.length-1;i++) pairs.add(path[i]+'>'+path[i+1]);
   N.forEach(n=>{const el=elFor[n.id];el.classList.remove('hot','dim','sel');if(set.has(n.id))el.classList.add('hot');else el.classList.add('dim');});
@@ -537,11 +548,62 @@ function openDrawer(n){
   if(ins.length)h+=`<div class="sec"><h4>Reachable from${ins.length>1?' (these merge here)':''}</h4>${neighborPills(ins)}</div>`;
   if(outs.length)h+=`<div class="sec"><h4>Leads to</h4>${neighborPills(outs)}</div>`;
   if(!ins.length&&!outs.length)h+=`<div class="hint">A starting point — pick any stream to begin.</div>`;
+  const id=n.id;
+  let btnHtml;
+  if(picked(id)){
+    const last = id===frontier();
+    btnHtml = `<button class="btn full ghost" id="selBtn"${last?'':' disabled'}>${last?'✓ Selected — tap to remove':'✓ Selected'}</button>
+      <p class="selhint">${last?'This is your latest step. Removing it lets you choose a different continuation.':'Remove the later step(s) first to change this one.'}</p>`;
+  } else if(isSelectable(id)){
+    btnHtml = `<button class="btn full" id="selBtn">✓ Select this path</button>
+      <p class="selhint">${pickPath.length?'A valid next step from your current selection.':'Closing with ✕ leaves it un-selected (dropped).'}</p>`;
+  } else {
+    btnHtml = `<button class="btn full ghost" id="selBtn" disabled>Not reachable from your selection</button>
+      <p class="selhint">This doesn't follow from “${esc(BY[frontier()].l.replace(' 🌐',''))}”. Use Clear, or remove your last step, to pick a different route.</p>`;
+  }
+  h+=`<div class="sec" style="margin-top:18px">${btnHtml}</div>`;
   const bd=document.getElementById('dbody');bd.innerHTML=h;bd.scrollTop=0;
   bd.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',ev=>{ev.stopPropagation();focusNode(b.dataset.go);}));
+  const sb=document.getElementById('selBtn');
+  if(sb && !sb.disabled) sb.onclick=()=>{ if(picked(id)) removePick(id); else addPick(id); clearFocus(); };
   drawer.classList.add('on');if(innerWidth<=720)scrim.classList.add('on');}
 document.getElementById('dclose').onclick=clearFocus;scrim.onclick=clearFocus;
 addEventListener('keydown',e=>{if(e.key==='Escape')clearFocus();});
+
+/* ---- persistent, connected path selection in the graph view ---- */
+let pickPath=[];                                  /* ordered list of selected node ids */
+const picked=id=>pickPath.includes(id);
+const frontier=()=>pickPath[pickPath.length-1];
+/* before any pick, any node can start a path; after that, only the frontier's
+   direct continuations (OUT edges) are selectable — so e.g. MBBS can't follow PCM+CS */
+function isSelectable(id){ return pickPath.length===0 ? true : (OUT[frontier()]||[]).includes(id); }
+function addPick(id){ if(isSelectable(id) && !picked(id)) pickPath.push(id); }
+function removePick(id){ if(id===frontier()) pickPath.pop(); }
+function refreshGraphStates(){
+  const has=pickPath.length>0;
+  const sel = has ? new Set(OUT[frontier()]||[]) : null;
+  N.forEach(n=>{ const el=elFor[n.id]; if(!el) return;
+    const isP=picked(n.id), isS=has && sel.has(n.id) && !isP;
+    el.classList.toggle('picked', isP);
+    el.classList.toggle('selectable', isS);
+    el.classList.toggle('gdisabled', has && !isP && !isS);
+  });
+  const pairs=new Set(); for(let i=0;i<pickPath.length-1;i++) pairs.add(pickPath[i]+'>'+pickPath[i+1]);
+  Object.values(pathFor).forEach(({el,a,b})=>{
+    let op=0.16, w=1.4;
+    if(has){
+      if(pairs.has(a+'>'+b)){ op=0.85; w=2.6; }                 /* the chosen path */
+      else if(a===frontier() && sel.has(b)){ op=0.5; w=2; }      /* next options */
+      else { op=0.05; w=1.2; }
+    }
+    el.setAttribute('opacity',op); el.setAttribute('stroke-width',w);
+  });
+  updatePicksBar();
+}
+function updatePicksBar(){ const bar=document.getElementById('picksbar'); const n=pickPath.length;
+  document.getElementById('picksN').textContent=n; bar.classList.toggle('show', n>0); }
+document.getElementById('picksClear').onclick=()=>{ pickPath=[]; clearFocus(); };
+document.getElementById('picksPdf').onclick=()=>downloadPicksPDF();
 
 function showGraph(focusChain){
   setScreen('app'); buildGraphDOM();
@@ -808,6 +870,44 @@ function planItems(){
   it.push({t:'- Revisit the full map to compare alternative routes that merge into the same goals.',size:10.5,gap:8});
   it.push({t:'Routes are indicative; verify eligibility and exams officially.',size:8.5,color:gray});
   return it;
+}
+
+/* shared blob-download helper */
+function savePdf(bytes, filename){
+  try{ const blob=new Blob([bytes],{type:'application/pdf'}); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },1500); return true;
+  }catch(e){ console.error(e); return false; }
+}
+/* PDF of the paths the user ticked in the graph view */
+function picksPdfItems(){
+  const blue=[0.247,0.482,0.937], gray=[0.47,0.52,0.63], green=[0.18,0.47,0.30];
+  const today=new Date().toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+  const ids=pickPath.slice();
+  const it=[];
+  it.push({t:'My Selected Path',bold:true,size:20,gap:4});
+  it.push({t:`${student.name||'Student'}${student.email?'  ·  '+student.email:''}  ·  ${today}`,size:10,color:gray,gap:6});
+  it.push({rule:1});
+  it.push({t:'SELECTED OPTIONS',bold:true,size:11,color:gray,gap:6});
+  ids.forEach((id,i)=>{ const n=BY[id];
+    it.push({t:`${i+1}.  ${n.l.replace(' 🌐','')}`,bold:true,size:12,color:blue});
+    it.push({t:`${STAGES[n.s].n}  ·  ${CAT[n.c]}`,size:9.5,color:gray,x:18});
+    if(n.dur) it.push({t:`Duration: ${n.dur}`,size:10,x:18});
+    if(n.entry) it.push({t:`How to get in: ${n.entry}`,size:10,x:18});
+    if(n.intl) it.push({t:`International: ${n.intl}`,size:10,x:18,color:green});
+    it.push({t:'',size:6,x:18,gap:4});
+  });
+  it.push({rule:1});
+  it.push({t:'An overview to discuss with a counsellor — not a replacement for professional career counselling. Verify eligibility & exams officially.',size:9,color:gray});
+  return it;
+}
+function downloadPicksPDF(){
+  if(!pickPath.length) return;
+  const nm=(student.name||'Student').trim();
+  /* "/" can't appear in a filename (path separator) — use a hyphen so the
+     student name is preserved instead of being dropped by the browser */
+  const ok=savePdf(makePDF(picksPdfItems()), nm+' Study-Career Path.pdf');
+  if(!ok) alert('Could not generate the PDF here. Try opening the page in a normal browser tab.');
 }
 
 function downloadPDF(){
